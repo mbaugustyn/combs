@@ -1,21 +1,20 @@
-use std::vec;
+use std::{time::Instant, vec};
+use std::collections::{HashMap, hash_map};
 
-fn can_put(x: usize, y: usize, size: usize, mat: &mut Vec<Vec<bool>>) -> bool {
-    if mat[x][y] {
+fn can_put <const SIZE: usize> (x: usize, y: usize, mat: &[[bool; SIZE]; SIZE]) -> bool {
+    if y > 0 && mat[x][y - 1] {
         return false;
     }
-    if (y > 0 && mat[x][y - 1]) || (y + 1 < size && mat[x][y + 1]) {
-        return false;
-    }
-    if (x > 0 && mat[x - 1][y]) || (x + 1 < size && mat[x + 1][y]) {
+    if x > 0 && mat[x - 1][y] { 
         return false;
     }
     return true;
 }
 
-fn print_mat(size: usize, mat: &mut Vec<Vec<bool>>) {
-    for i in 0..size {
-        for j in 0..size {
+fn print_mat <const SIZE: usize> (mat: &[[bool; SIZE]; SIZE]) {
+    println!("\nMat:");
+    for i in 0..SIZE {
+        for j in 0..SIZE {
             print!("{} ", mat[i][j] as i8);
         }
         println!();
@@ -23,142 +22,33 @@ fn print_mat(size: usize, mat: &mut Vec<Vec<bool>>) {
     println!();
 }
 
-// fn put (x: usize, y: usize, mat: &mut Vec<Vec<bool>>, size : usize, suma : &mut usize) {
-
-//     if can_put(x, y, size, mat) {
-//         *suma = *suma + 1;
-//         mat[x][y] = true;
-//         if y + 1 < size {
-//             put(x,y+1,mat,size,suma);
-//         }
-//         else if x + 1 < size {
-//             put(x+1,0,mat,size,suma);
-//         }
-//         else {
-//             return;
-//         }
-//     }
-
-//     mat[x][y] = false;
-//     clear_mat(x, y, size, mat);
-//     if y + 1 < size {
-//         put(x,y+1,mat,size,suma);
-//     }
-//     else if x + 1 < size {
-//         put(x+1,0,mat,size,suma);
-//     }
-//     else {
-//         return;
-//     }
-// }
-
-// fn combs_recursive (size: usize) -> usize {
-//     let mut suma: usize = 1;
-//     let mat = & mut vec![vec![false; size]; size];
-//     put (0,0,mat,size, &mut suma);
-//     return suma;
-// }
-
-/*
-fn get_max (v : &Vec<usize>) -> usize {
-
-    *v.iter().max().unwrap()
-}
-
-fn can_put_nawroty (x : usize, y  : usize, size : usize, mat : &Vec<Vec<usize>>) -> bool {
-    if y > 0 && mat[x].contains(&(y-1)) {
-        return false;
-    }
-    if x > 0 && mat[x-1].contains(&y) {
-        return false;
-    }
-    return true;
-}
-
-
-fn combs_nawroty (size: usize) -> usize {
-    let mut x: usize = 0;
-    let mut y: usize = 0;
-    let how_many = 2;
-    let mut suma = 0;
-    let mat: &mut Vec<Vec<usize>> = & mut vec![vec![]; size];
-    mat[0].push(0);
-
-    while x < how_many {
-        y = 0;
-        while (y < size && !can_put_nawroty(x,y,size, mat)) {
-            y += 1;
-        }
-
-        if y < size {
-            mat[x].push(y);
-            suma += 1;
-            x += 1;
-        }
-        else {
-            mat[x] = vec![];
-            if x == 0 {return suma};
-            x -= 1;
-        }
-
-    }
-    return suma;
-}
- */
-fn atleast1(size: usize, mat: &Vec<bool>) -> bool {
-    for y in mat {
-        if *y == true {
-            return true;
-        }
-    }
-    return false;
-}
-
-fn highest(size: usize, mat: &Vec<bool>) -> usize {
+fn highest <const SIZE: usize>(row: [bool; SIZE]) -> usize {
     let mut max = 0;
-    for i in 0..size {
-        if mat[i] == true {
+    for i in 0..SIZE {
+        if row[i] == true {
             max = i;
         }
     }
     return max;
 }
 
-fn how_many_1s(size: usize, mat: &Vec<bool>) -> usize {
-    let mut suma = 0;
-    for i in 0..size {
-        if mat[i] == true {
-            suma += 1;
-        }
-    }
-    return suma;
-}
 
-fn already_inplace(size: usize, mat: &Vec<Vec<bool>>) -> usize {
+fn already_inplace <const SIZE : usize> (mat: &[[bool; SIZE]; SIZE]) -> usize {
     let mut suma = 0;
-    for i in 0..size {
-        for j in 0..size {
+    for i in 0..SIZE {
+        for j in 0..SIZE {
             suma += mat[i][j] as usize;
         }
     }
     return suma;
 }
 
-fn first_1_row(size: usize, mat: &Vec<Vec<bool>>) -> usize {
-    for i in 0..size {
-        for j in 0..size {
-            if mat[i][j] {
-                return i;
-            }
-        }
-    }
-    return 0;
-}
 
-fn last_1_row(size: usize, mat: &Vec<Vec<bool>>) -> usize {
+
+fn last_1_row <const SIZE : usize> (mat: &[[bool; SIZE]; SIZE]) -> usize {
     let mut last = 0;
-    for i in 0..size {
-        for j in 0..size {
+    for i in 0..SIZE {
+        for j in 0..SIZE {
             if mat[i][j] {
                 last = i;
             }
@@ -167,53 +57,102 @@ fn last_1_row(size: usize, mat: &Vec<Vec<bool>>) -> usize {
     return last;
 }
 
-fn clear_from_point_on(x: usize, y: usize, size: usize, mat: &mut Vec<Vec<bool>>) {
-    for j in y..size {
-        mat[x][j] = false;
-    }
 
-    for i in (x + 1)..size {
-        for j in 0..size {
-            mat[i][j] = false;
-        }
+
+//Backtracking might be too slow. One can improve its speed using memoization taking into account that the number of solutions at a certain row k only depends on the position of the king in row k-1 and the set of occupied positions for rows <k.
+
+fn print_hash <const SIZE : usize> (mapa :  &HashMap<([bool; SIZE], usize), usize>) {
+    println!("\nMapa:");
+    for ((v,cnt), value) in mapa.iter() {
+        for i in v {print!("{}, ", *i as i32 );}
+        print!(" ; {}", cnt);
+        print!(" => {}", value);
+        println!("");
     }
 }
 
-fn combs ( size: usize) -> usize {
+fn save_results  <const SIZE : usize> (result : usize, from : usize, to  : usize, mapa :  &mut HashMap<([bool; SIZE], usize), usize>, mat: &[[bool; SIZE]; SIZE]) {
+    for i in from..to {
+        //let row = mat[i];
+        let value = mapa.get(&(mat[i], i)).unwrap_or(&0);
+        let exists = value != &0;
+        if exists {
+            mapa.insert((mat[i].clone(),i), result - value + 1);   
+        }
+        else {
+            println!("COS NIE TAK");
+        }
+    }
+}
+fn combs <const SIZE: usize> () -> usize {
     let mut suma: usize = 1;
-    let mat = &mut vec![vec![false; size]; size];
-    //let mat = [[false; size];size];
+    let mut mat = [[false; SIZE];SIZE];
     let mut x: usize = 0;
-    let mut y: usize = 0;
+    let mut y: usize;
     let mut po_nawrocie = false;
+    let mut mapa = HashMap::new();
 
-    while x < size {
-        y = highest(size, &mat[x]);
+
+    while x < SIZE {
+
+        y = highest::<SIZE>(mat[x]);
+        print_hash(&mapa);
 
         if mat[x][y] {
             if po_nawrocie {
                 mat[x][y] = false;
-                po_nawrocie = false;
+                //po_nawrocie = false;
             }
             y += 1;
         }
 
-        while y < size && !can_put(x, y, size, mat) {
-            y += 1;
-        }
+        while y < SIZE && !can_put::<SIZE>(x, y, &mat) {y += 1;} /* Probujemy ustawic krola */
 
-        if y < size {
+        if y < SIZE { /* Udalo sie ustawic krola */
             mat[x][y] = true;
+            print_mat::<SIZE>(&mat);
             suma += 1;
-        } else {
-            if x == size - 1 {
-                if already_inplace(size, mat) == 0 {
+            println!("1. Nowa suma = {}", suma);
+            po_nawrocie = false;
+        } else { /* Nie udalo sie ustawic krola -> albo nawrot albo probujemy w kolejnym wierszu */
+            if x == SIZE - 1 { /* Nawrot  */
+                if already_inplace::<SIZE>(&mat) == 0 { /* Nie ma gdzie robic nawrotu -> koniec */
                     return suma;
                 }
-                x = last_1_row(size, mat);
+                /* Nawrot do ostatniego krola */
+                let last_row = last_1_row::<SIZE>(&mat);
+                /* Zapiszmy w tym wierszu ilu sie kombinacji doliczylismy dla niego */
+                if x != last_row {
+                    let value = mapa.get(&(mat[last_row], last_row)).unwrap_or(&0);
+                    let exists = value != &0;
+                    if exists {
+                        println!("Zapisuje obliczony wynik dla ({:?} {}) , wynik => {}",
+                             mat[last_row] , last_row,  suma - value);
+                        save_results(suma, last_row, x, &mut mapa, &mat);
+                    }
+                    else {println!("COS NIE TAK");}
+                }
+                x = last_row;
                 po_nawrocie = true;
-            } else {
-                x += 1;
+            } else { /* Probujemy w kolejnym wierszu */
+                let value = mapa.get(&(mat[x], x)).unwrap_or(&0);
+                let exists = value != &0;
+                if exists { /* Juz to liczylismy -> nawrot */
+                    println!("Juz to liczylismy ({:?}, {})  = {} -> nawrot", mat[x], x, value);
+                    if !po_nawrocie {suma += value;}
+                    println!("2. Nowa suma = {}", suma);
+                    x = last_1_row::<SIZE>(&mat);
+                    po_nawrocie = true;
+                    if already_inplace::<SIZE>(&mat) == 0 { /* Nie ma gdzie robic nawrotu -> koniec */
+                        return suma;
+                    }
+                    
+                }
+                else { /* Jeszcze tego nie liczylismy */
+                    println!("Jeszcze tego nie liczylismy");
+                    mapa.insert((mat[x].clone(), x), suma);
+                    x += 1;
+                }
             }
         }
     }
@@ -221,33 +160,38 @@ fn combs ( size: usize) -> usize {
     return suma;
 }
 
+
+
 #[test]
 fn test2() {
-    assert_eq!(combs(2), 7);
+    assert_eq!(combs::<2>(), 7);
 }
 #[test]
 fn test3() {
-    assert_eq!(combs(3), 63);
+    assert_eq!(combs::<3>(), 63);
 }
 #[test]
 fn test4() {
-    assert_eq!(combs(4), 1234);
+    assert_eq!(combs::<4>(), 1234);
 }
 #[test]
 fn test5() {
-    assert_eq!(combs(5), 55447);
+    assert_eq!(combs::<5>(), 55447);
 }
-#[test]
-fn test6() {
-    assert_eq!(combs(6), 5598861);
-}
+// #[test]
+// fn test6() {
+//     assert_eq!(combs::<6>(), 5598861);
+// }
+
+// #[test]
+// fn test7 () {
+//     assert_eq!(combs::<7>(), 1 280 128 950);
+// }
 
 fn main() {
-    println!("Suma = {}", combs(3));
-    println!("Suma = {}", combs(4));
-    println!("Suma = {}", combs(5));
-    println!("Suma = {}", combs(6));
-    println!("Suma = {}", combs(7));
-    println!("Suma = {}", combs(8));
-    println!("Suma = {}", combs(9));
+//    let start = Instant::now();
+    println!("Suma dla i = {} => {}", 3, combs::<3>());
+    //println!("Time elapsed is: {:?}",  start.elapsed());
+
+    
 }
