@@ -72,15 +72,15 @@ fn print_hash <const SIZE : usize> (mapa :  &HashMap<([bool; SIZE], usize), usiz
 }
 
 fn save_results  <const SIZE : usize> (result : usize, from : usize, to  : usize, mapa :  &mut HashMap<([bool; SIZE], usize), usize>, mat: &[[bool; SIZE]; SIZE]) {
+
     for i in from..to {
-        //let row = mat[i];
         let value = mapa.get(&(mat[i], i)).unwrap_or(&0);
         let exists = value != &0;
         if exists {
-            mapa.insert((mat[i].clone(),i), result - value + 1);   
-        }
-        else {
-            println!("COS NIE TAK");
+            //print!("Zapisuje obliczony wynik dla ");
+            //for i in mat[i] {print!("{}, ", i as i32 );}
+            //println!(";  {} => {}", i,  result - value);
+            mapa.insert((mat[i].clone(),i), result - value);   
         }
     }
 }
@@ -96,25 +96,29 @@ fn combs <const SIZE: usize> () -> usize {
     while x < SIZE {
 
         y = highest::<SIZE>(mat[x]);
-        print_hash(&mapa);
+        // print_hash(&mapa);
 
         if mat[x][y] {
             if po_nawrocie {
                 mat[x][y] = false;
-                //po_nawrocie = false;
             }
             y += 1;
         }
 
         while y < SIZE && !can_put::<SIZE>(x, y, &mat) {y += 1;} /* Probujemy ustawic krola */
 
+
         if y < SIZE { /* Udalo sie ustawic krola */
             mat[x][y] = true;
-            print_mat::<SIZE>(&mat);
+
             suma += 1;
-            println!("1. Nowa suma = {}", suma);
+            // println!("1. Nowa suma = {}", suma);
+            // print_mat::<SIZE>(&mat);
             po_nawrocie = false;
-        } else { /* Nie udalo sie ustawic krola -> albo nawrot albo probujemy w kolejnym wierszu */
+
+        }
+
+        else { /* Nie udalo sie ustawic krola -> albo nawrot albo probujemy w kolejnym wierszu */
             if x == SIZE - 1 { /* Nawrot  */
                 if already_inplace::<SIZE>(&mat) == 0 { /* Nie ma gdzie robic nawrotu -> koniec */
                     return suma;
@@ -126,32 +130,38 @@ fn combs <const SIZE: usize> () -> usize {
                     let value = mapa.get(&(mat[last_row], last_row)).unwrap_or(&0);
                     let exists = value != &0;
                     if exists {
-                        println!("Zapisuje obliczony wynik dla ({:?} {}) , wynik => {}",
-                             mat[last_row] , last_row,  suma - value);
                         save_results(suma, last_row, x, &mut mapa, &mat);
                     }
-                    else {println!("COS NIE TAK");}
+                    //else {println!("COS NIE TAK");}
                 }
                 x = last_row;
                 po_nawrocie = true;
             } else { /* Probujemy w kolejnym wierszu */
+
+
+                
                 let value = mapa.get(&(mat[x], x)).unwrap_or(&0);
                 let exists = value != &0;
-                if exists { /* Juz to liczylismy -> nawrot */
-                    println!("Juz to liczylismy ({:?}, {})  = {} -> nawrot", mat[x], x, value);
-                    if !po_nawrocie {suma += value;}
-                    println!("2. Nowa suma = {}", suma);
-                    x = last_1_row::<SIZE>(&mat);
-                    po_nawrocie = true;
+
+                if x != SIZE - 1 && exists { /* Juz to liczylismy -> nawrot */
+                    //println!("Juz to liczylismy\n");
+                    //for i in mat[x] {print!("{}, ", i as i32)}
+                    //print!(" ; row = [{}] => {}, nawrot", x, value);
+                    suma += value;
+                    
+                    //println!("\n2. Nowa suma = {}", suma);
                     if already_inplace::<SIZE>(&mat) == 0 { /* Nie ma gdzie robic nawrotu -> koniec */
                         return suma;
                     }
-                    
+                    let last_row = last_1_row::<SIZE>(&mat);
+                    save_results(suma, last_row, x, &mut mapa, &mat);
+                    x = last_row;
+                    po_nawrocie = true;
                 }
-                else { /* Jeszcze tego nie liczylismy */
-                    println!("Jeszcze tego nie liczylismy");
+                else {
                     mapa.insert((mat[x].clone(), x), suma);
                     x += 1;
+                    po_nawrocie = false;
                 }
             }
         }
@@ -178,20 +188,30 @@ fn test4() {
 fn test5() {
     assert_eq!(combs::<5>(), 55447);
 }
-// #[test]
-// fn test6() {
-//     assert_eq!(combs::<6>(), 5598861);
-// }
+#[test]
+fn test6() {
+    assert_eq!(combs::<6>(), 5598861);
+}
 
-// #[test]
-// fn test7 () {
-//     assert_eq!(combs::<7>(), 1 280 128 950);
-// }
+#[test]
+fn test7 () {
+    assert_eq!(combs::<7>(), 1280128950);
+}
 
 fn main() {
-//    let start = Instant::now();
-    println!("Suma dla i = {} => {}", 3, combs::<3>());
-    //println!("Time elapsed is: {:?}",  start.elapsed());
+   let start = Instant::now();
+
+    // println!("Suma dla i = {} => {}", 2, combs::<2>());
+    // println!("Suma dla i = {} => {}", 3, combs::<3>());
+    // println!("Suma dla i = {} => {}", 4, combs::<4>());
+    // println!("Suma dla i = {} => {}", 5, combs::<5>());
+    // println!("Suma dla i = {} => {}", 6, combs::<6>());
+    // println!("Suma dla i = {} => {}", 7, combs::<7>());
+    // println!("Suma dla i = {} => {}", 7, combs::<7>());
+    
+    println!("Suma dla i = {} => {}", 11, combs::<11>());
+
+    println!("Time elapsed is: {:?}",  start.elapsed());
 
     
 }
