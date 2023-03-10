@@ -1,5 +1,7 @@
+use std::u128;
 use std::{time::Instant, vec};
 use std::collections::{HashMap, hash_map};
+use bigint::U256;
 
 fn can_put <const SIZE: usize> (x: usize, y: usize, mat: &[[bool; SIZE]; SIZE]) -> bool {
     if y > 0 && mat[x][y - 1] {
@@ -71,11 +73,11 @@ fn print_hash <const SIZE : usize> (mapa :  &HashMap<([bool; SIZE], usize), usiz
     }
 }
 
-fn save_results  <const SIZE : usize> (result : usize, from : usize, to  : usize, mapa :  &mut HashMap<([bool; SIZE], usize), usize>, mat: &[[bool; SIZE]; SIZE]) {
+fn save_results  <const SIZE : usize> (result : U256, from : usize, to  : usize, mapa :  &mut HashMap<([bool; SIZE], usize), U256>, mat: &[[bool; SIZE]; SIZE]) {
 
     for i in from..to {
-        let value = mapa.get(&(mat[i], i)).unwrap_or(&0);
-        let exists = value != &0;
+        let value = *mapa.get(&(mat[i], i)).unwrap_or(&0.into());
+        let exists = value != 0.into();
         if exists {
             //print!("Zapisuje obliczony wynik dla ");
             //for i in mat[i] {print!("{}, ", i as i32 );}
@@ -84,8 +86,8 @@ fn save_results  <const SIZE : usize> (result : usize, from : usize, to  : usize
         }
     }
 }
-fn combs <const SIZE: usize> () -> usize {
-    let mut suma: usize = 1;
+fn combs <const SIZE: usize> () -> U256 {
+    let mut suma: U256 = 1.into();
     let mut mat = [[false; SIZE];SIZE];
     let mut x: usize = 0;
     let mut y: usize;
@@ -94,30 +96,18 @@ fn combs <const SIZE: usize> () -> usize {
 
 
     while x < SIZE {
-
         y = highest::<SIZE>(mat[x]);
-        // print_hash(&mapa);
-
         if mat[x][y] {
-            if po_nawrocie {
-                mat[x][y] = false;
-            }
+            mat[x][y] = !po_nawrocie;
             y += 1;
         }
-
         while y < SIZE && !can_put::<SIZE>(x, y, &mat) {y += 1;} /* Probujemy ustawic krola */
-
 
         if y < SIZE { /* Udalo sie ustawic krola */
             mat[x][y] = true;
-
-            suma += 1;
-            // println!("1. Nowa suma = {}", suma);
-            // print_mat::<SIZE>(&mat);
+            suma = suma + 1.into();
             po_nawrocie = false;
-
         }
-
         else { /* Nie udalo sie ustawic krola -> albo nawrot albo probujemy w kolejnym wierszu */
             if x == SIZE - 1 { /* Nawrot  */
                 if already_inplace::<SIZE>(&mat) == 0 { /* Nie ma gdzie robic nawrotu -> koniec */
@@ -125,31 +115,16 @@ fn combs <const SIZE: usize> () -> usize {
                 }
                 /* Nawrot do ostatniego krola */
                 let last_row = last_1_row::<SIZE>(&mat);
-                /* Zapiszmy w tym wierszu ilu sie kombinacji doliczylismy dla niego */
-                if x != last_row {
-                    let value = mapa.get(&(mat[last_row], last_row)).unwrap_or(&0);
-                    let exists = value != &0;
-                    if exists {
-                        save_results(suma, last_row, x, &mut mapa, &mat);
-                    }
-                    //else {println!("COS NIE TAK");}
-                }
+                /* Zapiszmy wyniki w wierszach "na gorze" */
+                save_results(suma, last_row, x, &mut mapa, &mat);
                 x = last_row;
                 po_nawrocie = true;
             } else { /* Probujemy w kolejnym wierszu */
-
-
-                
-                let value = mapa.get(&(mat[x], x)).unwrap_or(&0);
-                let exists = value != &0;
+                let value = *mapa.get(&(mat[x], x)).unwrap_or(&0.into());
+                let exists = value != 0.into();
 
                 if x != SIZE - 1 && exists { /* Juz to liczylismy -> nawrot */
-                    //println!("Juz to liczylismy\n");
-                    //for i in mat[x] {print!("{}, ", i as i32)}
-                    //print!(" ; row = [{}] => {}, nawrot", x, value);
-                    suma += value;
-                    
-                    //println!("\n2. Nowa suma = {}", suma);
+                    suma = suma + value;
                     if already_inplace::<SIZE>(&mat) == 0 { /* Nie ma gdzie robic nawrotu -> koniec */
                         return suma;
                     }
@@ -174,28 +149,40 @@ fn combs <const SIZE: usize> () -> usize {
 
 #[test]
 fn test2() {
-    assert_eq!(combs::<2>(), 7);
+    assert_eq!(combs::<2>(), 7.into());
 }
 #[test]
 fn test3() {
-    assert_eq!(combs::<3>(), 63);
+    assert_eq!(combs::<3>(), 63.into());
 }
 #[test]
 fn test4() {
-    assert_eq!(combs::<4>(), 1234);
+    assert_eq!(combs::<4>(), 1234.into());
 }
 #[test]
 fn test5() {
-    assert_eq!(combs::<5>(), 55447);
+    assert_eq!(combs::<5>(), 55447.into());
 }
 #[test]
 fn test6() {
-    assert_eq!(combs::<6>(), 5598861);
+    assert_eq!(combs::<6>(), 5598861.into());
 }
 
 #[test]
 fn test7 () {
-    assert_eq!(combs::<7>(), 1280128950);
+    assert_eq!(combs::<7>(), 1280128950.into());
+}
+#[test]
+fn test8 () {
+    assert_eq!(combs::<8>(), (660647962955 as u64).into());
+}
+#[test]
+fn test9 () {
+    assert_eq!(combs::<9>(), (770548397261707 as u64).into());
+}
+#[test]
+fn test10 () {
+    assert_eq!(combs::<10>(), (2030049051145980050 as u64).into());
 }
 
 fn main() {
@@ -209,7 +196,7 @@ fn main() {
     // println!("Suma dla i = {} => {}", 7, combs::<7>());
     // println!("Suma dla i = {} => {}", 7, combs::<7>());
     
-    println!("Suma dla i = {} => {}", 11, combs::<11>());
+    println!("Suma dla i = {} => {}", 12, combs::<12>());
 
     println!("Time elapsed is: {:?}",  start.elapsed());
 
